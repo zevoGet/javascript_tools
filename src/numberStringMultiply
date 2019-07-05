@@ -1,0 +1,141 @@
+
+function addArray(a1,a2){
+    let mlen = a1.length - a2.length;
+    let arr1 = a1,arr2 = a2;
+    if(mlen < 0){
+        arr1 = a2,arr2 = a1;
+        mlen = -mlen;
+    }
+    arr2.forEach((v,i) => {
+        arr1[mlen+i] += v;
+    });
+
+    for(let i=arr1.length-1;i>-1;i--){
+        if(arr1[i] > 9){
+            if(i>0){
+                arr1[i-1] += Math.floor(arr1[i]/10);
+                arr1[i] %= 10;
+            }else{
+                arr1.unshift(Math.floor(arr1[i]/10));
+                arr1[i+1] %= 10;
+            }
+        }
+    }
+
+    return arr1;
+}
+
+/**
+ * 这里的话 a1必须比a2的，因为我不想弄个负数
+ * @param {*} a1 
+ * @param {*} a2 
+ */
+function subArray(a1,a2){
+    let l1=a1.length,l2 =a2.length
+    for(let i=0;i<l2;i++){
+        a1[l1-i-1] -= a2[l2-i-1];
+    }
+
+    for(let i=1;i<l1;i++){
+        if(a1[l1-i] < 0){
+            a1[l1-i] += 10;
+            a1[l1-i-1] -=1;
+        }
+    }
+
+    return a1;
+}
+
+/**
+ * 长度必须相等呀数组
+ * @param {*} arr1 
+ * @param {*} arr2 
+ */
+function mulArray(arr1,arr2){
+    let len = arr1.length;
+    if(len == 1){
+        let t = arr1[0] * arr2[0];
+        return t>9?[Math.floor(t/10),t%10]:[t];
+    }else{
+        let mid = Math.floor(len/2),ti = mid*2-len;
+        let x1 = arr1.slice(0,mid),x2=arr1.slice(mid,len),y1 = arr2.slice(0,mid),y2=arr2.slice(mid,len);
+        
+        let r1 = mulArray(x1,y1);
+        let r2 = mulArray(x2,y2);
+        let xx1 =x2.map((v,i)=>{return v+~~x1[i+ti]}),yy1 =y2.map((v,i)=>{return v+~~y1[i+ti]})
+        let r3 = mulArray(xx1,yy1);
+        subArray(r3,r2),subArray(r3,r1);
+
+
+        let shiftLen = len-mid;
+        Array.prototype.push.apply(r1,new Array(2*shiftLen).fill(0));
+        Array.prototype.push.apply(r3,new Array(shiftLen).fill(0));
+        Array.prototype.unshift.apply(r2,new Array(2*shiftLen).fill(0));
+        r1 = addArray(r1,r2);
+        r1 = addArray(r1,r3);
+
+        while(r1.length > 0 && r1[0] ==0){
+            r1.shift()
+        }
+        return r1;
+    }
+
+}
+
+
+/**
+ * @return 返回一个数组，arr.join("") 就是最终的结果
+ * 参数不定，但是只能是由0-9构成的字符串，毕竟我用了parseInt，不然会有NaN的
+ * @param arg1,arg2,arg3,.....
+ * 
+ * @example
+ * mulString("13","13") //return  [1,6,9]
+ * mulString("14","14").join("") //return  169
+ * mulString("1234","25864","33358","555664")
+ * ...
+ * 
+ */
+function mulString() {
+    let mularr = Array.prototype.slice.call(arguments, 0).map(v => {
+        return v.split("").map(vv => { return parseInt(vv) });
+    }) || [];
+
+    if (mularr.length > 1) {
+        let m_arr = mularr[0],m_maxlen = m_arr.length,temp_len=0,temp_arr;
+        for (let i = 1, c = mularr.length; i < c; i++) {
+            temp_len = mularr[i].length
+            if(m_maxlen < temp_len){
+                temp_len = temp_len - m_maxlen;
+                m_maxlen += temp_len;
+                temp_arr = m_arr;
+            }else{
+                temp_len = m_maxlen - temp_len;
+                temp_arr = mularr[i]
+            }
+            Array.prototype.unshift.apply(temp_arr,new Array(temp_len).fill(0));
+            m_arr = mulArray(m_arr,mularr[i]);
+            m_maxlen = m_arr.length;
+        }
+        return m_arr;
+    } else {
+        return mularr[0];
+    }
+}
+
+/**test */
+var a = mulString("15","15").join("")
+console.log(a)//225
+a = mulString("12225","15").join("")
+console.log(a)//183375
+a = mulString("1578643","15").join("")
+console.log(a)//23679645
+
+a = mulString("1513486","15123456").join("")
+console.log(a)//22889138927616
+a = mulString("1513486","15123456","33").join("")
+console.log(a)//755341584611328
+a = mulString("22889138927616","33").join("")
+console.log(a)//755341584611328
+a = mulString("22889138927461315413616","45648435153463133").join("")
+console.log(a)//1044853374048826543153421290634702218928
+module.exports = mulString
