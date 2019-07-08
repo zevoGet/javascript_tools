@@ -55,7 +55,13 @@ function mulArray(arr1,arr2){
     let len = arr1.length;
     if(len == 1){
         let t = arr1[0] * arr2[0];
-        return t>9?[Math.floor(t/10),t%10]:[t];
+        let res = []
+        while(t>9){
+            res.push(t%10);
+            t=Math.floor(t/10);
+        }
+        res.push(t);
+        return res.reverse();
     }else{
         let mid = Math.floor(len/2),ti = mid*2-len;
         let x1 = arr1.slice(0,mid),x2=arr1.slice(mid,len),y1 = arr2.slice(0,mid),y2=arr2.slice(mid,len);
